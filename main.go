@@ -14,7 +14,7 @@ type tcpServer struct {
 	slaves       map[byte][]float64
 }
 
-var dataLock = sync.Mutex{}
+var dataLock = sync.RWMutex{}
 
 func netRead(conn net.Conn, readNum int, timeout time.Duration) (result []byte, err error) {
 	//err = conn.SetReadDeadline(time.Now().Add(timeout))
@@ -90,6 +90,9 @@ func readModbusTcp(conn net.Conn) ([]byte, error) {
 }
 
 func (ts tcpServer) handle(conn net.Conn) error {
+	defer func() {
+		recover()
+	}()
 	for {
 		readFrame, err := readModbusTcp(conn)
 		if err != nil {
@@ -101,7 +104,7 @@ func (ts tcpServer) handle(conn net.Conn) error {
 		startAddr := decodeUint16(readFrame[8:10])
 		number := decodeUint16(readFrame[10:12])
 		fmt.Printf("slaveID:%d,funcID:%d,startAddr:%d,number:%d\n", slaveID, funcID, startAddr, number)
-		dataLock.Lock()
+		dataLock.RLock()
 		locallen := uint16(len(ts.slaves[slaveID]) * 4)
 		var errCode = byte(0)
 		if funcID != 3 {
@@ -126,7 +129,7 @@ func (ts tcpServer) handle(conn net.Conn) error {
 			respondFrame = append(respondFrame, data...)
 			netWrite(conn, respondFrame)
 		}
-		dataLock.Unlock()
+		dataLock.RUnlock()
 	}
 }
 
