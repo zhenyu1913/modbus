@@ -92,6 +92,7 @@ func readModbusTcp(conn net.Conn) ([]byte, error) {
 func (ts *tcpServer) handle(conn net.Conn) error {
 	defer func() {
 		recover()
+		conn.Close()
 	}()
 	for {
 		readFrame, err := readModbusTcp(conn)
