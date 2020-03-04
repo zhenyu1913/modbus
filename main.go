@@ -89,7 +89,7 @@ func readModbusTcp(conn net.Conn) ([]byte, error) {
 	return data, nil
 }
 
-func (ts tcpServer) handle(conn net.Conn) error {
+func (ts *tcpServer) handle(conn net.Conn) error {
 	defer func() {
 		recover()
 	}()
@@ -133,7 +133,7 @@ func (ts tcpServer) handle(conn net.Conn) error {
 	}
 }
 
-func (ts tcpServer) Listen() error {
+func (ts *tcpServer) Listen() error {
 	fmt.Println("liseten on " + ts.localAddress)
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", ts.localAddress)
 	if err != nil {
